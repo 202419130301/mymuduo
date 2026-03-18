@@ -1,0 +1,12 @@
+build/
+lib/
+
+*.o
+*.so
+*.a
+
+.vscode/
+.idea/
+
+*.swp
+*.swo
