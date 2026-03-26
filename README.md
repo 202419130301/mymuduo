@@ -56,7 +56,17 @@
                 TcpConnection
 ```
 
-## 构建方式
+## 目录结构
+
+- `include/mymuduo/`：对外暴露的公共头文件
+- `src/`：库实现
+- `examples/`：示例程序
+- `cmake/`：CMake 包配置模板
+- `build/`：构建产物目录
+
+现在项目已经按可复用库的结构整理完成，适合安装后被其它项目直接引用。
+
+## 构建
 
 > 以 Linux 环境为例。
 
@@ -64,12 +74,63 @@
 mkdir -p build
 cd build
 cmake ..
-make -j
+cmake --build . -j
 ```
 
-构建完成后会生成动态库：
+构建完成后，`build/` 目录下会生成：
 
-- `lib/libmymuduo.so`
+- `libmymuduo.so`
+- `echo_server`
+
+## 安装
+
+安装到系统默认前缀 `/usr/local`：
+
+```bash
+cd build
+sudo cmake --install .
+```
+
+安装后默认文件位置为：
+
+- `/usr/local/include/mymuduo/`
+- `/usr/local/lib/libmymuduo.so`
+- `/usr/local/lib/cmake/mymuduo/`
+
+如果要安装到自定义前缀，可以在配置阶段指定：
+
+```bash
+cmake .. -DCMAKE_INSTALL_PREFIX=/your/install/prefix
+```
+
+## 外部项目使用
+
+### 头文件引用
+
+```cpp
+#include <mymuduo/EventLoop.h>
+#include <mymuduo/InetAddress.h>
+#include <mymuduo/TcpServer.h>
+```
+
+### CMake 使用方式
+
+推荐使用标准 CMake 包方式：
+
+```cmake
+find_package(mymuduo REQUIRED)
+
+add_executable(your_app main.cpp)
+target_link_libraries(your_app PRIVATE mymuduo::mymuduo)
+```
+
+这种方式下，`mymuduo` 自己的头文件目录和线程依赖会通过导出的 CMake target 自动传递给外部项目，不需要在业务项目里手动再写一遍。
+
+如果 `mymuduo` 安装在非系统默认前缀下，可以这样告诉 CMake 去哪里找：
+
+```bash
+cmake -S . -B build -DCMAKE_PREFIX_PATH=/your/install/prefix
+```
 
 ## 运行示例
 
@@ -87,13 +148,6 @@ nc 127.0.0.1 8888
 ```
 
 输入任意文本后，服务端会原样回显。
-
-## 目录说明
-
-- 根目录：核心源码与头文件
-- `examples/`：示例程序
-- `build/`：CMake 构建产物
-- `lib/`：动态库输出目录
 
 ## 说明与后续计划
 
